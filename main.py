@@ -1,30 +1,23 @@
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 import os
 
-# خواندن توکن از فایل config.txt
-def load_token():
-    with open("config.txt", "r") as f:
-        line = f.readline().strip()
-        return line.split("=")[1]
+TOKEN = os.getenv("TELEGRAM_TOKEN")
 
-TOKEN = load_token()
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("ربات روشنه علیرضا 👑")
 
-# تابعی که وقتی کاربر پیام می‌دهد اجرا می‌شود
-def handle_message(update, context):
-    user_text = update.message.text
-    update.message.reply_text(f"پیامت رسید: {user_text}")
+async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text
+    await update.message.reply_text(f"پیامت رسید: {text}")
 
-# شروع ربات
 def main():
-    updater = Updater(TOKEN, use_context=True)
-    dp = updater.dispatcher
+    app = ApplicationBuilder().token(TOKEN).build()
 
-    # هر پیام متنی → تابع handle_message اجرا شود
-    dp.add_handler(MessageHandler(Filters.text, handle_message))
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
-    updater.start_polling()
-    updater.idle()
+    app.run_polling()
 
 if __name__ == "__main__":
     main()
